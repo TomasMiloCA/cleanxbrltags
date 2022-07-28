@@ -1,0 +1,72 @@
+def processstrings_final(a):
+    import re, nltk, spacy, gensim
+    from tqdm import tqdm
+    result = list(map(lambda x: x.lower(),a))
+    custom_tags_lc_sc=[]
+    for i in range(len(result)):
+        custom_tags_lc_sc.append(re.sub(r"[^a-zA-Z0-9]+", ' ', result[i]))
+    custom_tags_lc_sc_num=[]
+    for i in tqdm(range(len(custom_tags_lc_sc))):
+        custom_tags_lc_sc_num.append(re.sub(r'\d+', '', custom_tags_lc_sc[i]))
+    custom_tags_lc_sc_num_letter=[]
+    for i in tqdm(range(len(custom_tags_lc_sc_num))):
+        custom_tags_lc_sc_num_letter.append(' '.join( [w for w in custom_tags_lc_sc_num[i].split() if len(w)>1] ))
+
+    from nltk.corpus import stopwords
+    import string
+    stop_words_to_add = []
+    for i in range(len(stopwords.words("english"))):
+        stop_words_to_add.append(
+            string.capwords(stopwords.words('english')[i]))
+    #create a variable to store the standard english stop words, then create a for loop to add each item in the previously created list
+    all_stopwords = stopwords.words('english')
+    for i in range(len(all_stopwords)):
+        all_stopwords.append(stop_words_to_add[i])
+
+    #add the comma (",") to the list of stop words
+    all_stopwords.append(",")
+    #add the quotation (') to the list of stop words
+    all_stopwords.append("'")
+    #add the brackets to the list of stop words
+    all_stopwords.append(")")
+    all_stopwords.append("(")
+    all_stopwords.append("in")
+    all_stopwords.append("of")
+    all_stopwords.append("to")
+    
+    #remove stop words from custom tags
+    custom_tags_clean=[]
+    from tqdm import tqdm
+    from nltk.tokenize import word_tokenize
+    for i in tqdm(range(len(custom_tags_lc_sc_num_letter))):
+        #try:
+            text_tokens = word_tokenize(custom_tags_lc_sc_num_letter[i])
+            tokens_without_sw = [
+                word for word in text_tokens if not word in all_stopwords]
+            custom_tags_clean.append(tokens_without_sw)
+        #except:
+         #   print("problem occured on tag",i)
+    from nltk.corpus import stopwords
+    import string
+    from tqdm import tqdm
+    custom_tag_string = [' '.join([str(c) for c in lst]) for lst in tqdm(custom_tags_clean)]
+    #first we want to hold a list of list for the results of the stemmed words
+    custom_tag_string_stem=[]
+    for i in range(len(custom_tag_string)):
+        custom_tag_string_stem.append([])
+    from nltk.stem import PorterStemmer
+    from nltk.tokenize import word_tokenize
+
+    ps = PorterStemmer()
+
+    for i in tqdm(range(len(custom_tag_string))):
+        sentence = custom_tag_string[i]
+        words = word_tokenize(sentence)
+        result_stem=[]
+        for w in range(len(words)):
+            word_to_stem=words[w]
+            result_stem.append(ps.stem(word_to_stem))
+        custom_tag_string_stem[i]= result_stem
+    from unhashlist import unhashlist
+    tags_string=unhashlist(custom_tag_string_stem)
+    return tags_string
